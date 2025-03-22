@@ -62,8 +62,8 @@
         "yup": "^0.32.9"
     },
     "scripts": {
-        "dev": "vite",
-        "start": "vite",
+        "dev": "vite --port ${PORT-8100} --clearScreen false",
+        "start": "vite preview --port ${PORT-8100}",
         "build": "vite build",
         "clean": "rimraf build",
         "nuke": "rimraf build node_modules .turbo"
