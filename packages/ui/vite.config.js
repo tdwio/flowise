@@ -46,6 +46,21 @@ export default defineConfig(async ({ mode }) => {
             proxy,
             port: process.env.VITE_PORT ?? 8080,
             host: process.env.VITE_HOST
-        }
+        },
+        /** Define environment variables */
+        define: (() => {
+            // Replace import.meta.env with the process.env value
+            if (process.env.BASE_URL_API === undefined) {
+                throw new Error(`Missing environment variable: BASE_URL_API`)
+            }
+            if (process.env.BASE_URL_ASSETS === undefined) {
+                throw new Error(`Missing environment variable: BASE_URL_ASSETS`)
+            }
+
+            return {
+                'import.meta.env.VITE_API_BASE_URL': JSON.stringify(`${process.env.BASE_URL_API}/flowise`),
+                'import.meta.env.VITE_ASSETS_BASE_URL': JSON.stringify(process.env.BASE_URL_ASSETS)
+            }
+        })()
     }
 })
