@@ -8,7 +8,7 @@ import { AppBar, Box, CssBaseline, Toolbar, useMediaQuery } from '@mui/material'
 
 // project imports
 import Header from './Header'
-import Sidebar from './Sidebar'
+// import Sidebar from './Sidebar'
 import { drawerWidth, headerHeight } from '@/store/constant'
 import { SET_MENU } from '@/store/actions'
 
@@ -25,19 +25,19 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({
         }),
         marginRight: 0,
         [theme.breakpoints.up('md')]: {
-            marginLeft: -drawerWidth,
-            width: `calc(100% - ${drawerWidth}px)`
+            // marginLeft: -drawerWidth,
+            // width: `calc(100% - ${drawerWidth}px)`
         },
         [theme.breakpoints.down('md')]: {
-            marginLeft: '20px',
-            width: `calc(100% - ${drawerWidth}px)`,
+            // marginLeft: '20px',
+            // width: `calc(100% - ${drawerWidth}px)`,
             padding: '16px'
         },
         [theme.breakpoints.down('sm')]: {
-            marginLeft: '10px',
-            width: `calc(100% - ${drawerWidth}px)`,
-            padding: '16px',
-            marginRight: '10px'
+            // marginLeft: '10px',
+            // width: `calc(100% - ${drawerWidth}px)`,
+            padding: '16px'
+            // marginRight: '10px'
         }
     }),
     ...(open && {
@@ -54,11 +54,14 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(({
     })
 }))
 
+// ==============================|| NOOP ||============================== //
+const Sidebar = () => null
+
 // ==============================|| MAIN LAYOUT ||============================== //
 
 const MainLayout = () => {
     const theme = useTheme()
-    const matchDownMd = useMediaQuery(theme.breakpoints.down('lg'))
+    // const matchDownMd = useMediaQuery(theme.breakpoints.down('lg'))
 
     // Handle left drawer
     const leftDrawerOpened = useSelector((state) => state.customization.opened)
@@ -67,10 +70,10 @@ const MainLayout = () => {
         dispatch({ type: SET_MENU, opened: !leftDrawerOpened })
     }
 
-    useEffect(() => {
-        setTimeout(() => dispatch({ type: SET_MENU, opened: !matchDownMd }), 0)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [matchDownMd])
+    // useEffect(() => {
+    //     setTimeout(() => dispatch({ type: SET_MENU, opened: !matchDownMd }), 0)
+    //     // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [matchDownMd])
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -92,7 +95,8 @@ const MainLayout = () => {
             </AppBar>
 
             {/* drawer */}
-            <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} />
+            {/* <Sidebar drawerOpen={leftDrawerOpened} drawerToggle={handleLeftDrawerToggle} /> */}
+            <Sidebar drawerOpen={false} drawerToggle={handleLeftDrawerToggle} />
 
             {/* main content */}
             <Main theme={theme} open={leftDrawerOpened}>
