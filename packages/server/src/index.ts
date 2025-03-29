@@ -4,7 +4,9 @@ import path from 'path'
 import cors from 'cors'
 import http from 'http'
 import basicAuth from 'express-basic-auth'
+import cookieParser from 'cookie-parser'
 import { DataSource } from 'typeorm'
+import { GlideClusterClient } from '@valkey/valkey-glide'
 import { MODE } from './Interface'
 import { getNodeModulesPackagePath, getEncryptionKey } from './utils'
 import logger, { expressRequestLogger } from './utils/logger'
@@ -60,6 +62,7 @@ export class App {
     metricsProvider: IMetricsProvider
     queueManager: QueueManager
     redisSubscriber: RedisEventSubscriber
+    valkeyClient: GlideClusterClient
 
     constructor() {
         this.app = express()
@@ -114,6 +117,17 @@ export class App {
                 await this.redisSubscriber.connect()
             }
 
+            // Initialize Valkey
+            const valkeyEndpointAddress = process.env.VALKEY_ENDPOINT_ADDRESS
+            const valkeyEndpointPort = process.env.VALKEY_ENDPOINT_PORT
+            if (!valkeyEndpointAddress || !valkeyEndpointPort) {
+                throw new Error('VALKEY_ENDPOINT_ADDRESS and VALKEY_ENDPOINT_PORT must be set')
+            }
+            this.valkeyClient = await GlideClusterClient.createClient({
+                addresses: [{ host: valkeyEndpointAddress, port: parseInt(valkeyEndpointPort) }],
+                useTLS: false
+            })
+
             logger.info('📦 [server]: Data Source has been initialized!')
         } catch (error) {
             logger.error('❌ [server]: Error during Data Source initialization:', error)
@@ -121,6 +135,9 @@ export class App {
     }
 
     async config() {
+        // Initialize cookie parser
+        this.app.use(cookieParser())
+
         // Limit is needed to allow sending/receiving base64 encoded string
         const flowise_file_size_limit = process.env.FLOWISE_FILE_SIZE_LIMIT || '50mb'
         this.app.use(express.json({ limit: flowise_file_size_limit }))
@@ -156,10 +173,25 @@ export class App {
         const URL_CASE_INSENSITIVE_REGEX: RegExp = /\/api\/v1\//i
         const URL_CASE_SENSITIVE_REGEX: RegExp = /\/api\/v1\//
 
-        if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
+        // eslint-disable-next-line no-constant-condition
+        if (true) {
+            this.app.use(async (req, res, next) => {
+                /** Get `SessionId` from cookie */
+                const sessionId = req.cookies.SessionId
+
+                /** If unset 401 */
+                if (!sessionId) return res.status(401).json({ error: 'Unauthorized Access' })
+
+                /** Check if session is valid */
+                const session = await this.valkeyClient.get(`session:${sessionId}`)
+                if (session !== 'scope:*') return res.status(401).json({ error: 'Unauthorized Access' })
+                else next()
+            })
+        } else if (process.env.FLOWISE_USERNAME && process.env.FLOWISE_PASSWORD) {
             const username = process.env.FLOWISE_USERNAME
             const password = process.env.FLOWISE_PASSWORD
             const basicAuthMiddleware = basicAuth({
+                // @ts-expect-error
                 users: { [username]: password }
             })
             this.app.use(async (req, res, next) => {
@@ -188,6 +220,7 @@ export class App {
                     next()
                 }
             })
+            // eslint-disable-next-line no-constant-condition
         } else {
             this.app.use(async (req, res, next) => {
                 // Step 1: Check if the req path contains /api/v1 regardless of case
