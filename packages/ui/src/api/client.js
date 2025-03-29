@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { baseURL } from '@/store/constant'
 
+axios.defaults.withCredentials = true
 const apiClient = axios.create({
     baseURL: `${baseURL}/api/v1`,
     headers: {

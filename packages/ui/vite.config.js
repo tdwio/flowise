@@ -58,7 +58,7 @@ export default defineConfig(async ({ mode }) => {
             }
 
             return {
-                'import.meta.env.VITE_API_BASE_URL': JSON.stringify(`${process.env.BASE_URL_API}/flowise`),
+                'import.meta.env.VITE_API_BASE_URL': JSON.stringify(process.env.BASE_URL_FLOWISE),
                 'import.meta.env.VITE_ASSETS_BASE_URL': JSON.stringify(process.env.BASE_URL_ASSETS)
             }
         })()
